@@ -75,7 +75,7 @@ const setBrushColor = async (page: puppeteer.Page, color: string) => {
   const page = await browser.newPage();
   await page.goto('https://nifty.ink');
 
-  const brushSize = 30;
+  const brushSize = 25;
   await setBrushSize(page, brushSize);
   await setBrushColor(page, 'FF0000');
 
@@ -102,6 +102,6 @@ const setBrushColor = async (page: puppeteer.Page, color: string) => {
     }
   }
 
-  await new Promise((resolve) => setTimeout(resolve, Number.MAX_SAFE_INTEGER));
+  await new Promise((resolve) => setTimeout(resolve, 24 * 60 * 60 * 1000));
   await browser.close();
 })();
