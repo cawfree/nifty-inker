@@ -98,11 +98,10 @@ const setBrushColor = async (page: puppeteer.Page, color: string) => {
     for (let x = 1; x < width; x += brushSize) {
       const color = Color(resizedImage.getPixelColor(x, y) >> 8);
       await setBrushColor(page, color.hex().substring(1));
-      await clickOnElement(page, canvas, x, y, 3);
+      await clickOnElement(page, canvas, x, y, 2);
     }
   }
 
-  await new Promise((resolve) => setTimeout(resolve, 10000));
-
+  await new Promise((resolve) => setTimeout(resolve, Number.MAX_SAFE_INTEGER));
   await browser.close();
 })();
