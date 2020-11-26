@@ -3,7 +3,7 @@ import Jimp from 'jimp';
 import Color from 'color';
 
 async function delay() {
-  //await new Promise((resolve) => setTimeout(resolve, 0));
+  await new Promise((resolve) => setTimeout(resolve, 0));
 }
 
 async function scrollTo(page: puppeteer.Page, x: number, y: number) {
@@ -67,15 +67,21 @@ const setBrushColor = async (page: puppeteer.Page, color: string) => {
 };
 
 (async () => {
+  const metamask =
+    '/Users/cawfree/Library/Application Support/Google/Chrome/Default/Extensions/nkbihfbeogaeaoehlefnkodbefgpgknn/8.1.3_0';
   const browser = await puppeteer.launch({
     headless: false,
     defaultViewport: null,
-    args: ['--start-maximized'],
+    args: [
+      '--start-maximized',
+      `--disable-extensions-except=${metamask}`,
+      `--load-extension=${metamask}`,
+    ],
   });
   const page = await browser.newPage();
   await page.goto('https://nifty.ink');
 
-  const brushSize = 25;
+  const brushSize = 22;
   await setBrushSize(page, brushSize);
   await setBrushColor(page, 'FF0000');
 
