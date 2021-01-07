@@ -1,6 +1,7 @@
-import puppeteer from 'puppeteer';
-import Jimp from 'jimp';
 import Color from 'color';
+import Jimp from 'jimp';
+//import { shuffle } from 'lodash';
+import puppeteer from 'puppeteer';
 
 async function delay() {
   await new Promise((resolve) => setTimeout(resolve, 0));
@@ -48,10 +49,13 @@ const setInputValue = async (
 };
 
 const setBrushSize = async (page: puppeteer.Page, size: number) => {
+  await scrollTo(page, 0, 0);
+  await delay();
   const numberInputs = await page.$$('input.ant-input-number-input');
   const sizeInput = numberInputs[numberInputs.length - 1];
   await setInputValue(page, sizeInput, `${size}`);
   await delay();
+  await scrollTo(page, 0, 0);
 };
 
 const setBrushColor = async (page: puppeteer.Page, color: string) => {
@@ -67,22 +71,15 @@ const setBrushColor = async (page: puppeteer.Page, color: string) => {
 };
 
 (async () => {
-  const metamask =
-    '/Users/cawfree/Library/Application Support/Google/Chrome/Default/Extensions/nkbihfbeogaeaoehlefnkodbefgpgknn/8.1.3_0';
   const browser = await puppeteer.launch({
     headless: false,
     defaultViewport: null,
-    args: [
-      '--start-maximized',
-      `--disable-extensions-except=${metamask}`,
-      `--load-extension=${metamask}`,
-    ],
+    args: ['--start-maximized'],
   });
   const page = await browser.newPage();
   await page.goto('https://nifty.ink');
 
-  const brushSize = 22;
-  await setBrushSize(page, brushSize);
+  const brushSize = 24;
   await setBrushColor(page, 'FF0000');
 
   const canvases = await page.$$('canvas');
@@ -94,18 +91,41 @@ const setBrushColor = async (page: puppeteer.Page, color: string) => {
   } = (await canvas.boundingBox()) as puppeteer.BoundingBox;
 
   const image = await Jimp.read(
-    'https://pbs.twimg.com/profile_images/1158079861967081472/GflgY1rG_400x400.jpg'
+    'https://i.imgur.com/a8kYFAf.png'
+    //'https://static.coindesk.com/wp-content/uploads/2020/12/Hayden-Adams-LinkedIn-285x285.jpeg'
+    //'https://pbs.twimg.com/profile_images/1004469891498434560/MUJLxUf8_400x400.jpg'
+    //'https://pbs.twimg.com/profile_images/977496875887558661/L86xyLF4_400x400.jpg'
+    //'https://pbs.twimg.com/profile_images/586603361241321472/lSYz_Uqj_400x400.jpg'
+    //'https://pbs.twimg.com/profile_images/1158079861967081472/GflgY1rG_400x400.jpg'
   );
   const resizedImage = await image.resize(width, height);
 
+  type Point = {
+    readonly x: number;
+    readonly y: number;
+    readonly color: Color;
+  };
+
+  const dots = [];
+
   // eslint-disable-next-line functional/no-loop-statement,functional/no-let
-  for (let y = 1; y < height; y += brushSize) {
+  for (let y = 1; y < height; y += brushSize * 0.5) {
     // eslint-disable-next-line functional/no-loop-statement,functional/no-let
-    for (let x = 1; x < width; x += brushSize) {
+    for (let x = 1; x < width; x += brushSize * 0.5) {
       const color = Color(resizedImage.getPixelColor(x, y) >> 8);
-      await setBrushColor(page, color.hex().substring(1));
-      await clickOnElement(page, canvas, x, y, 2);
+      // eslint-disable-next-line functional/immutable-data
+      dots.push({ x: x, y: y, color } as Point);
     }
+  }
+
+  const shuffled = dots; //shuffle(dots);
+
+  // eslint-disable-next-line functional/no-loop-statement,functional/no-let
+  for (let i = 0; i < shuffled.length; i += 1) {
+    const { x, y, color } = shuffled[i];
+    await setBrushColor(page, color.hex().substring(1));
+    await setBrushSize(page, brushSize);
+    await clickOnElement(page, canvas, x, y, 2);
   }
 
   await new Promise((resolve) => setTimeout(resolve, 24 * 60 * 60 * 1000));
